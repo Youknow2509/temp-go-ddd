@@ -1,0 +1,15 @@
+# Logger ignore
+logs/
+**/logs/
+**/*.log
+
+# Mac ignore 
+.DS_Store
+**/.DS_Store
+
+# Config system files
+config/config.yaml
+
+# Envairionment docker
+.env
+**/.env

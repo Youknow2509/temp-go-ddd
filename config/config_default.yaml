@@ -1,0 +1,36 @@
+system:
+    name: 'temp-go-ddd'
+    version: '1.0.0'
+    region: 'us-west-1'
+    shard_id: 'shard-1'
+    timezone: 'UTC'
+    mode: 'prod' # dev, prod
+
+http_server:
+    port: 8080
+
+grpc:
+    network: 'tcp'
+    port: 50051
+    keepalive_time_ms: 120000
+    keepalive_timeout_ms: 20000
+    http2_min_time_between_pings_ms: 60000
+    keepalive_permit_without_calls: true
+    tls:
+        enabled: false
+        cert_file: ''
+        key_file: ''
+
+logger:
+    folder_store: './logs'
+    file_max_size: 500
+    file_max_backups: 3
+    file_max_age: 30
+    compress: true
+
+observability:
+    enabled: true
+    metrics_path: '/metrics'
+    metrics_port: 9090
+    tracing_enabled: true
+    otlp_endpoint: 'http://jaeger:4318/v1/traces'
