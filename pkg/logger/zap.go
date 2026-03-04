@@ -108,13 +108,14 @@ func helperGetZapOptions(server_mode string) []zap.Option {
 	case constant.SystemModeDevelopment:
 		return []zap.Option{
 			zap.AddCaller(),                      // Ghi file:line gọi log
-			zap.AddCallerSkip(0),                 // Caller skip level (điều chỉnh nếu wrap thêm layer)
+			zap.AddCallerSkip(1),                 // Caller skip level (điều chỉnh nếu wrap thêm layer)
 			zap.AddStacktrace(zapcore.WarnLevel), // Stacktrace từ Warn trở lên -> debug dễ
 			zap.Development(),                    // DPanic sẽ panic thay vì chỉ log
 		}
 	default: // Production
 		return []zap.Option{
 			zap.AddCaller(),
+			zap.AddCallerSkip(1),
 			zap.AddStacktrace(zapcore.ErrorLevel), // Chỉ stacktrace khi Panic/Fatal -> giảm noise
 		}
 	}
