@@ -1,6 +1,6 @@
 package initialize
 
-// ==============================================================
+// ===
 // Initialize the system
 func Initialize() error {
 	// Initialize configurations system

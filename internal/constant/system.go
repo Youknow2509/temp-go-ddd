@@ -1,9 +1,9 @@
 package constant
 
-// ==============================================================
-// Define constant for system 
-// ==============================================================
+// ===
+// Define constant for system
+// ===
 const (
-	SystemModeProduction = "prod"
+	SystemModeProduction  = "prod"
 	SystemModeDevelopment = "dev"
 )

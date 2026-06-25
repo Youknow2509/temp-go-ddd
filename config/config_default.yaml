@@ -21,6 +21,174 @@ grpc:
         cert_file: ''
         key_file: ''
 
+grpc_client:
+    default:
+        connection:
+            connect_timeout_ms: 3000
+            initial_backoff_ms: 100
+            max_backoff_ms: 5000
+            lazy_connect: false
+            tcp_nodelay: true
+        timeouts:
+            request_timeout_ms: 5000
+            stream_timeout_ms: 0
+            shutdown_timeout_ms: 10000
+        pool:
+            connections_per_endpoint: 2
+            max_concurrent_streams_per_connection: 100
+            idle_timeout_ms: 300000
+        keepalive:
+            http2_keepalive_interval_ms: 30000
+            http2_keepalive_timeout_ms: 10000
+            keepalive_while_idle: true
+            tcp_keepalive_ms: 60000
+        retry:
+            enabled: true
+            max_attempts: 3
+            initial_backoff_ms: 50
+            max_backoff_ms: 1000
+            backoff_multiplier: 2.0
+            retryable_status_codes:
+                - 'UNAVAILABLE'
+                - 'DEADLINE_EXCEEDED'
+                - 'RESOURCE_EXHAUSTED'
+            use_jitter: true
+        tls:
+            is_enabled: false
+            cert_file: 'certs/grpc/client.crt'
+            key_file: 'certs/grpc/client.key'
+            require_client_cert: false
+            min_version: 'TLS1.2'
+    auth-service:
+        discovery: 'static'
+        addresses:
+            - '127.0.0.1:50052'
+        service_name: 'auth-service-dev'
+        authority: 'auth-service.internal'
+        service: 'auth_service.AuthService'
+
+redis:
+    type: 1 # 1: standalone, 2: sentinel, 3: cluster
+    use_tls: false
+    # tls config if use_tls is true
+    cert_path: '' # path to your certificate file, default if use: ./config/redis/cert.pem
+    key_path: '' # path to your key file, default if use: ./config/redis/key.pem
+    # base
+    password: 'your_redis_password'
+    db: 0 # default database
+    # For standalone type
+    host: '127.0.0.1'
+    port: 6379
+    # For sentinel type
+    master_name: 'mymaster'
+    sentinel_addrs:
+        - '127.0.0.1:26379'
+        - '127.0.0.1:26380'
+        - '127.0.0.1:26381'
+    # For cluster type
+    address:
+        - '127.0.0.1:26379'
+        - '127.0.0.1:26380'
+        - '127.0.0.1:26381'
+    route_by_latency: true # true if you want to route by latency, false if you want to route by hash
+    route_randomly: false # true if you want to route randomly, false if you want
+    # pool config
+    pool_size: 10 # maximum number of connections in the pool
+    min_idle_conns: 2 # minimum number of idle connections
+    max_retries: 3 # maximum number of retries for a command
+
+scylladb:
+    authentication:
+        username: 'cassandra'
+        password: 'your_scylladb_password'
+    address:
+        - 127.0.1:9042
+        # - v.v
+    keyspace: 'main_keyspace'
+    ssl:
+        enabled: false # true/false
+        certfile_path: '' # path default: ./config/scylladb/rootca.crt
+        validate: true # true/false
+        userkey_path: '' # path default: ./config/scylladb/client_key.key
+        usercert_path: '' # path default: ./config/scylladb/client_cert.crt
+    # pool config
+    maxIdleConns: 10 # maximum number of idle connections
+    maxOpenConns: 100 # maximum number of open connections
+    connMaxLifetime: 3600 # maximum connection lifetime in seconds
+
+postgres:
+    address:
+        - 127.0.0.1:5433
+        # - v.v
+    database: 'main_db'
+    username: 'postgres'
+    password: 'your_postgres_password'
+    sslmode: 'disable' # 1: disable, require, verify-ca, verify-full
+    sslcert: '' # path to your SSL certificate file, only if sslmode is not disable
+    sslkey: '' # path to your SSL key file, only if sslmode is not disable
+    sslrootcert: '' # path to your SSL root certificate file, only if sslmode is not disable
+    sslpassword: '' # password for your SSL key file, only if sslmode is not disable
+    appname: 'main_db-dev' # application name
+    connectionTimeout: 5 # seconds
+    tz: 'UTC' # timezone
+    maxConns: 10 # maximum number of connections
+    minConns: 2 # minimum number of connections
+    minIdleConns: 2 # minimum idle connections
+    maxConnIdleTime: 300 # seconds
+    maxConnLifetimeJitter: 60 # seconds
+    healthCheckPeriod: 30 # seconds
+
+kafka:
+    brokers:
+        - 127.0.0.1:9092 # Danh sách broker Kafka
+    security:
+        sasl:
+            enabled: true # Bật xác thực SASL (true/false)
+            mechanism: 'plain' # 'plain', 'scram-sha-256', 'scram-sha-512'
+            username: admin
+            password: admin123
+        tls:
+            enabled: false # Bật TLS (true/false)
+            skip_verify: false
+            ca_file: '' # Đường dẫn file CA nếu cần
+    producer:
+        compression_type: 'snappy' # none = '', 'gzip', 'snappy', 'lz4', 'zstd'
+        retries: 5 # Số lần retry khi lỗi
+        retry_backoff_ms: 100 # Thời gian giữa các lần retry (ms)
+        linger_ms: 20 # Delay gửi batch nếu batch chưa đầy (ms)
+        batch_size: 100 # Số lượng message tối đa trong 1 batch
+        batch_bytes: 1048576 # Giới hạn kích thước batch (1MB)
+        max_attempts: 5 # Tối đa số lần thử gửi (tổng thể, bao gồm retry logic)
+        async: false # true: gửi không chờ phản hồi (mất message nếu lỗi)
+        write_timeout_ms: 10000 # Timeout khi ghi message (ms)
+        read_timeout_ms: 10000 # Timeout khi nhận phản hồi từ Kafka (ms)
+        balancer: 'reference_hash' #  'round_robin', 'least_bytes', 'hash', 'reference_hash', 'crc32_balancer', 'murmur2_balancer', 'custom_balancer'
+    consumers:
+        group_id: 'main-service-group' # ID của consumer group
+        # COMMIT
+        commit_interval_ms: 1000 # 0 = sync commit, >0 = auto commit theo thời gian (ms)
+        # BATCH FETCH
+        min_bytes: 10000 # 10KB: Minimum data per fetch
+        max_bytes: 1048576 # 1MB: Maximum fetch size
+        max_wait_ms: 500 # Maximum time to wait for batch fill (ms)
+        read_batch_timeout_ms: 10000
+        # HEARTBEAT & REBALANCE
+        heartbeat_interval_ms: 3000
+        session_timeout_ms: 30000
+        rebalance_timeout_ms: 30000
+        join_group_backoff_ms: 5000
+        # BACKOFF (khi không có message)
+        read_backoff_min_ms: 100 # Min delay between poll retries
+        read_backoff_max_ms: 1000 # Max delay
+        # LAG MONITORING
+        read_lag_interval_ms: 5000 # -1 = disable
+        # CONNECTION / RETRY
+        max_attempts: 3
+        # QUEUE
+        queue_capacity: 100
+        # RETENTION
+        retention_time_ms: -1 # -1 = use broker default
+
 logger:
     folder_store: './logs'
     file_max_size: 500

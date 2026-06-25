@@ -5,15 +5,15 @@ import (
 
 	"github.com/youknow2509/temp-go-ddd/internal/constant"
 	"github.com/youknow2509/temp-go-ddd/internal/global"
-	pkg_config "github.com/youknow2509/temp-go-ddd/pkg/config"
+	infra_config "github.com/youknow2509/temp-go-ddd/internal/infrastructure/config"
 )
 
-// ==============================================================
+// ===
 // private function to initialize the configurations system
-// ==============================================================
+// ===
 
 func initializeConfig() error {
-	config_instance := pkg_config.NewViperConfig()
+	config_instance := infra_config.NewViperConfig()
 	config_data, err := config_instance.LoadConfig(context.Background(), constant.ConfigFileName)
 	if err != nil {
 		return err

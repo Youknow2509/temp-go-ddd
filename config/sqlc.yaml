@@ -1,0 +1,28 @@
+version: '2'
+sql:
+    - engine: postgresql
+      schema:
+          - '../../migrations/sql/*.up.sql'
+      queries:
+          - '../internal/infrastructure/sql/*.sql'
+      gen:
+          go:
+              package: sql_gen
+              out: ../internal/infrastructure/sql_gen
+              sql_package: pgx/v5
+              emit_interface: true
+              emit_empty_slices: true
+              emit_pointers_for_null_types: true
+              overrides:
+                  - db_type: uuid
+                    go_type:
+                        import: github.com/google/uuid
+                        package: uuid
+                        type: UUID
+                  - db_type: pg_catalog.uuid
+                    go_type:
+                        import: github.com/google/uuid
+                        package: uuid
+                        type: UUID
+                  - db_type: citext
+                    go_type: string

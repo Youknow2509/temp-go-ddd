@@ -8,12 +8,11 @@ import (
 	"github.com/spf13/viper"
 	"github.com/youknow2509/temp-go-ddd/internal/constant"
 	domain_config "github.com/youknow2509/temp-go-ddd/internal/domain/config"
-	domain_model "github.com/youknow2509/temp-go-ddd/internal/domain/model"
 )
 
 type ViperConfig struct{}
 
-func (v *ViperConfig) LoadConfig(ctx context.Context, pathConfig string) (*domain_model.SystemConfig, error) {
+func (v *ViperConfig) LoadConfig(ctx context.Context, pathConfig string) (*domain_config.SystemConfig, error) {
 	// Load default config
 	defaultViper := viper.New()
 	defaultViper.SetConfigType(constant.ConfigFileType)
@@ -42,7 +41,7 @@ func (v *ViperConfig) LoadConfig(ctx context.Context, pathConfig string) (*domai
 	}
 
 	// Unmarshal config data
-	configData := &domain_model.SystemConfig{}
+	configData := &domain_config.SystemConfig{}
 	if err := defaultViper.Unmarshal(configData); err != nil {
 		return nil, err
 	}
@@ -62,9 +61,9 @@ func NewViperConfig() domain_config.IConfig {
 	return &ViperConfig{}
 }
 
-// ==============================================================
+// ===
 // Helper
-// ==============================================================
+// ===
 
 // helperDeepMerge: merge src vào dst đệ quy
 // - Key có trong src -> ghi đè dst

@@ -1,23 +1,23 @@
 package initialize
 
 import (
-	domain_model "github.com/youknow2509/temp-go-ddd/internal/domain/model"
+	domain_logger "github.com/youknow2509/temp-go-ddd/internal/domain/logger"
 	"github.com/youknow2509/temp-go-ddd/internal/global"
-	pkg_logger "github.com/youknow2509/temp-go-ddd/pkg/logger"
+	infra_logger "github.com/youknow2509/temp-go-ddd/internal/infrastructure/logger"
 )
 
-// ==============================================================
+// ===
 // private function to initialize the logger
-// ==============================================================
+// ===
 
 func initializeLogger() error {
 	// Create logger configuration
-	logger_config := domain_model.NewLoggerConfigPkg(
+	logger_config := domain_logger.NewLoggerConfigPkg(
 		global.SystemConfig.System.Mode,
 		global.SystemConfig.Logger,
 	)
 	// Create logger instance
-	logger, err := pkg_logger.NewZapLogger(logger_config)
+	logger, err := infra_logger.NewZapLogger(logger_config)
 	if err != nil {
 		return err
 	}

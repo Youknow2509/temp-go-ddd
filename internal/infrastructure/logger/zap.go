@@ -6,20 +6,21 @@ import (
 	"time"
 
 	"github.com/youknow2509/temp-go-ddd/internal/constant"
+	domain_config "github.com/youknow2509/temp-go-ddd/internal/domain/config"
 	domain_logger "github.com/youknow2509/temp-go-ddd/internal/domain/logger"
-	domain_model "github.com/youknow2509/temp-go-ddd/internal/domain/model"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// ==============================================================
+// ===
 // Use go.uber.org/zap deployment logger
 // Example usage:
 // - logger.Info("This is an info message", "user_id", 123, "action", "login")
 // - logger.Info(zap.String("user_id", "123"), zap.String("action", "login"))
 // Structure log key-value pairs or zap.Fields with helperConvertToZapFields for better type handling.
-// ==============================================================
+// ===
 type ZapLogger struct {
 	logger *zap.Logger
 }
@@ -55,7 +56,7 @@ func (z ZapLogger) Warn(msg string, fields ...interface{}) {
 }
 
 // New intance and implementation of logger interface
-func NewZapLogger(config *domain_model.LoggerConfigPkg) (domain_logger.ILogger, error) {
+func NewZapLogger(config *domain_logger.LoggerConfigPkg) (domain_logger.ILogger, error) {
 	if config == nil {
 		return nil, fmt.Errorf("logger config is nil")
 	}
@@ -98,9 +99,9 @@ func NewZapLogger(config *domain_model.LoggerConfigPkg) (domain_logger.ILogger, 
 	}, nil
 }
 
-// ==============================================================
+// ===
 // Helper function for zap logger
-// ==============================================================
+// ===
 
 // Helper get zap options by server mode
 func helperGetZapOptions(server_mode string) []zap.Option {
@@ -209,7 +210,7 @@ func helperConvertToZapFields(fields ...interface{}) []zap.Field {
 }
 
 // Helper get file writer with lumberjack rotation
-func helperGetFileWriter(setting domain_model.LoggerSetting) zapcore.WriteSyncer {
+func helperGetFileWriter(setting domain_config.LoggerSetting) zapcore.WriteSyncer {
 	// Create log directory if not exists
 	if _, err := os.Stat(setting.FolderStore); os.IsNotExist(err) {
 		os.MkdirAll(setting.FolderStore, os.ModePerm)

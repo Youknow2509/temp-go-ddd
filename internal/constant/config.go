@@ -1,8 +1,8 @@
 package constant
 
-// ==============================================================
+// ===
 // Define constant for configuration
-// ==============================================================
+// ===
 const (
 	// DefaultNameFileConfig is the default name for configuration file
 	DefaultNameFileConfig = "config_default.yaml"
@@ -12,6 +12,6 @@ const (
 	ConfigFileType = "yaml"
 	// FolderConfig is the folder name for configuration files
 	FolderConfig = "config"
-	// System Mode Environment Key 
+	// System Mode Environment Key
 	SystemModeEnvKey = "SYSTEM_MODE"
 )
