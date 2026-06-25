@@ -1,9 +1,9 @@
 package main
 
 import (
+	"context"
 	"sync"
 
-	"github.com/youknow2509/temp-go-ddd/internal/global"
 	"github.com/youknow2509/temp-go-ddd/internal/initialize"
 )
 
@@ -27,14 +27,16 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	// Inintialize global wait group
-	global.WaitGroup = &sync.WaitGroup{}
+	// Initialize application context and wait group
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
 
 	// Start system
-	if err := initialize.Initialize(); err != nil {
+	resources, err := initialize.Initialize(ctx, wg)
+	if err != nil {
 		panic(err)
 	}
 
-	// Wait for all goroutines to finish
-	global.WaitGroup.Wait()
+	// Wait for OS shutdown signal and gracefully shut down services
+	initialize.WaitForShutdown(cancel, wg, resources)
 }

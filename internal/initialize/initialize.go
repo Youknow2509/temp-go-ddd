@@ -1,16 +1,47 @@
 package initialize
 
+import (
+	"context"
+	"net/http"
+	"sync"
+
+	domain_config "github.com/youknow2509/temp-go-ddd/internal/domain/config"
+	domain_logger "github.com/youknow2509/temp-go-ddd/internal/domain/logger"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+)
+
+// AppResources contains resource instances that need explicit lifecycle management (e.g. shutdown)
+type AppResources struct {
+	Config         *domain_config.SystemConfig
+	Logger         domain_logger.ILogger
+	TracerProvider *sdktrace.TracerProvider
+	MeterProvider  *sdkmetric.MeterProvider
+	MetricServer   *http.Server
+}
+
 // ===
 // Initialize the system
-func Initialize() error {
+// ===
+func Initialize(ctx context.Context, wg *sync.WaitGroup) (*AppResources, error) {
 	// Initialize configurations system
-	if err := initializeConfig(); err != nil {
-		return err
+	config, err := initializeConfig(ctx)
+	if err != nil {
+		return nil, err
 	}
-	// Initialize the logger
-	if err := initializeLogger(); err != nil {
-		return err
+	// Initialize telemetry (logger, metric, tracing)
+	logger, tp, mp, server, err := initializeTelemetry(ctx, wg, config)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resources := &AppResources{
+		Config:         config,
+		Logger:         logger,
+		TracerProvider: tp,
+		MeterProvider:  mp,
+		MetricServer:   server,
+	}
+
+	return resources, nil
 }

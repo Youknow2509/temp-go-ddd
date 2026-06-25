@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"time"
 )
 
@@ -70,52 +69,3 @@ type (
 	}
 )
 
-/**
- * Variable for cache
- */
-var (
-	vIDistributedCache IDistributedCache
-	vILocalCache       ILocalCache
-)
-
-/**
- * Set distributed cache
- */
-func SetDistributedCache(cache IDistributedCache) error {
-	if vIDistributedCache != nil {
-		return errors.New("distributed cache is already initialized")
-	}
-	vIDistributedCache = cache
-	return nil
-}
-
-/**
- * Get distributed cache
- */
-func GetDistributedCache() (IDistributedCache, error) {
-	if vIDistributedCache == nil {
-		return nil, errors.New("distributed cache is not initialized, please call SetDistributedCache first")
-	}
-	return vIDistributedCache, nil
-}
-
-/**
- * Set local cache
- */
-func SetLocalCache(cache ILocalCache) error {
-	if vILocalCache != nil {
-		return errors.New("local cache is already initialized")
-	}
-	vILocalCache = cache
-	return nil
-}
-
-/**
- * Get local cache
- */
-func GetLocalCache() (ILocalCache, error) {
-	if vILocalCache == nil {
-		return nil, errors.New("local cache is not initialized, please call SetLocalCache first")
-	}
-	return vILocalCache, nil
-}

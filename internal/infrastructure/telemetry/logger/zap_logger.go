@@ -60,38 +60,68 @@ func NewZapLogger(config *domain_logger.LoggerConfigPkg) (domain_logger.ILogger,
 	if config == nil {
 		return nil, fmt.Errorf("logger config is nil")
 	}
-	// Define level handling logic
-	logger_level := helperGetZapLevelEnabler(config.ServerMode)
+
+	// Parse base log level
+	baseLevel := helperParseZapLevel(config.Setting.Level)
 
 	// Define encoders
-	json_encoder := helperGetZapEncoderJson()
-	console_encoder := helperGetZapEncoderConsole()
+	jsonEncoder := helperGetZapEncoderJson()
+	consoleEncoder := helperGetZapEncoderConsole()
 
-	// Define file writer with lumberjack rotation
-	file_writer := helperGetFileWriter(config.Setting)
-
-	// Build cores based on server mode
 	var cores []zapcore.Core
 
-	// Always log to file
-	cores = append(cores, zapcore.NewCore(json_encoder, file_writer, logger_level))
-	// Check mode to decide if we also log to console
-	if config.ServerMode == constant.SystemModeDevelopment {
-		console_writer := zapcore.Lock(os.Stdout)
+	// Create outputs dynamically based on config.Setting.Output
+	for _, out := range config.Setting.Output {
+		switch out {
+		case "stdout":
+			cores = append(cores, zapcore.NewCore(
+				consoleEncoder,
+				zapcore.Lock(os.Stdout),
+				baseLevel,
+			))
+		case "stderr":
+			cores = append(cores, zapcore.NewCore(
+				consoleEncoder,
+				zapcore.Lock(os.Stderr),
+				baseLevel,
+			))
+		case "file":
+			if config.Setting.File.Enabled {
+				fileWriter := helperGetFileWriter(config.Setting)
+				cores = append(cores, zapcore.NewCore(
+					jsonEncoder,
+					fileWriter,
+					baseLevel,
+				))
+			}
+		}
+	}
+
+	// Fallback to stdout if no core is created
+	if len(cores) == 0 {
 		cores = append(cores, zapcore.NewCore(
-			console_encoder,
-			console_writer,
-			logger_level,
+			consoleEncoder,
+			zapcore.Lock(os.Stdout),
+			baseLevel,
 		))
 	}
 
-	// Join cores together
+	// Tee all cores together
 	core := zapcore.NewTee(cores...)
 
-	// Build zap options based on server mode
-	zapOptions := helperGetZapOptions(config.ServerMode)
+	// Build zap options dynamically
+	var zapOptions []zap.Option
 
-	// Create construct Logger.
+	if config.Setting.Caller {
+		zapOptions = append(zapOptions, zap.AddCaller(), zap.AddCallerSkip(1))
+	}
+
+	if config.Setting.StacktraceLevel != "" {
+		stacktraceLevel := helperParseZapLevel(config.Setting.StacktraceLevel)
+		zapOptions = append(zapOptions, zap.AddStacktrace(stacktraceLevel))
+	}
+
+	// Create Zap Logger
 	logger := zap.New(core, zapOptions...)
 
 	return ZapLogger{
@@ -103,22 +133,25 @@ func NewZapLogger(config *domain_logger.LoggerConfigPkg) (domain_logger.ILogger,
 // Helper function for zap logger
 // ===
 
-// Helper get zap options by server mode
-func helperGetZapOptions(server_mode string) []zap.Option {
-	switch server_mode {
-	case constant.SystemModeDevelopment:
-		return []zap.Option{
-			zap.AddCaller(),                      // Ghi file:line gọi log
-			zap.AddCallerSkip(1),                 // Caller skip level (điều chỉnh nếu wrap thêm layer)
-			zap.AddStacktrace(zapcore.WarnLevel), // Stacktrace từ Warn trở lên -> debug dễ
-			zap.Development(),                    // DPanic sẽ panic thay vì chỉ log
-		}
-	default: // Production
-		return []zap.Option{
-			zap.AddCaller(),
-			zap.AddCallerSkip(1),
-			zap.AddStacktrace(zapcore.ErrorLevel), // Chỉ stacktrace khi Panic/Fatal -> giảm noise
-		}
+// Helper parse string log level to zapcore.Level
+func helperParseZapLevel(levelStr string) zapcore.Level {
+	switch levelStr {
+	case "trace", "debug":
+		return zapcore.DebugLevel
+	case "info":
+		return zapcore.InfoLevel
+	case "warn", "warning":
+		return zapcore.WarnLevel
+	case "error":
+		return zapcore.ErrorLevel
+	case "dpanic":
+		return zapcore.DPanicLevel
+	case "panic":
+		return zapcore.PanicLevel
+	case "fatal":
+		return zapcore.FatalLevel
+	default:
+		return zapcore.InfoLevel
 	}
 }
 
@@ -210,18 +243,18 @@ func helperConvertToZapFields(fields ...interface{}) []zap.Field {
 }
 
 // Helper get file writer with lumberjack rotation
-func helperGetFileWriter(setting domain_config.LoggerSetting) zapcore.WriteSyncer {
+func helperGetFileWriter(setting domain_config.TelemetryLoggerSetting) zapcore.WriteSyncer {
 	// Create log directory if not exists
-	if _, err := os.Stat(setting.FolderStore); os.IsNotExist(err) {
-		os.MkdirAll(setting.FolderStore, os.ModePerm)
+	if _, err := os.Stat(setting.File.Folder); os.IsNotExist(err) {
+		os.MkdirAll(setting.File.Folder, os.ModePerm)
 	}
 	// Create lumberjack logger for file rotation
 	lumberJackLogger := &lumberjack.Logger{
-		Filename:   setting.FolderStore + "/app.log", // Đường dẫn file log
-		MaxSize:    setting.FileMaxSize,              // MB trước khi rotate
-		MaxBackups: setting.FileMaxBackups,           // Số file backup giữ lại
-		MaxAge:     setting.FileMaxAge,               // Số ngày giữ file cũ
-		Compress:   setting.Compress,                 // Nén file log cũ (gzip)
+		Filename:   setting.File.Folder + "/" + setting.File.Filename, // Đường dẫn file log
+		MaxSize:    setting.File.MaxSizeMb,                            // MB trước khi rotate
+		MaxBackups: setting.File.MaxBackups,                           // Số file backup giữ lại
+		MaxAge:     setting.File.MaxAgeDays,                           // Số ngày giữ file cũ
+		Compress:   setting.File.Compress,                             // Nén file log cũ (gzip)
 	}
 	return zapcore.AddSync(lumberJackLogger)
 }
@@ -242,18 +275,4 @@ func helperGetZapEncoderJson() zapcore.Encoder {
 	cfg.StacktraceKey = constant.LoggerKeyStacktrace
 	// Return a new JSON encoder with the custom configuration
 	return zapcore.NewJSONEncoder(cfg)
-}
-
-// Helper get zap level handler by server mode
-func helperGetZapLevelEnabler(server_mode string) zap.LevelEnablerFunc {
-	switch server_mode {
-	case constant.SystemModeDevelopment:
-		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl < zapcore.WarnLevel
-		})
-	default:
-		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= zapcore.WarnLevel
-		})
-	}
 }

@@ -189,16 +189,39 @@ kafka:
         # RETENTION
         retention_time_ms: -1 # -1 = use broker default
 
-logger:
-    folder_store: './logs'
-    file_max_size: 500
-    file_max_backups: 3
-    file_max_age: 30
-    compress: true
-
-observability:
-    enabled: true
-    metrics_path: '/metrics'
-    metrics_port: 9090
-    tracing_enabled: true
-    otlp_endpoint: 'http://jaeger:4318/v1/traces'
+telemetry:
+    logger:
+        level: 'debug' # trace | debug | info | warn | error
+        output: ['stdout', 'file'] # stdout | stderr | file
+        caller: true
+        stacktrace_level: 'error' # trace | debug | info | warn | error
+        file:
+            enabled: true
+            folder: 'logs'
+            filename: 'app.log'
+            max_size_mb: 100
+            max_backups: 7
+            max_age_days: 30
+            compress: true
+    metrics:
+        enabled: true
+        path: '/metrics'
+        port: 9091
+        host: '0.0.0.0'
+        namespace: 'temp_rs_ddd'
+        collect_interval_secs: 15
+    tracing:
+        enabled: true
+        service_name: 'temp-go-ddd'
+        service_version: '0.1.0'
+        otlp_endpoint: 'http://127.0.0.1:4317'
+        protocol: 'grpc' # grpc | http
+        sampling_ratio: 1.0
+        propagation: ['jaeger'] # tracecontext | baggage | jaeger
+        batch:
+            max_queue_size: 2048
+            max_export_batch_size: 512
+            schedule_delay_ms: 5000
+            export_timeout_ms: 30000
+        headers:
+            x-api-key: ''

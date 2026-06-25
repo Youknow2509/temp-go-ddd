@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/youknow2509/temp-go-ddd/internal/constant"
-	"github.com/youknow2509/temp-go-ddd/internal/global"
+	domain_config "github.com/youknow2509/temp-go-ddd/internal/domain/config"
 	infra_config "github.com/youknow2509/temp-go-ddd/internal/infrastructure/config"
 )
 
@@ -12,15 +12,12 @@ import (
 // private function to initialize the configurations system
 // ===
 
-func initializeConfig() error {
+func initializeConfig(ctx context.Context) (*domain_config.SystemConfig, error) {
 	config_instance := infra_config.NewViperConfig()
-	config_data, err := config_instance.LoadConfig(context.Background(), constant.ConfigFileName)
+	config_data, err := config_instance.LoadConfig(ctx, constant.ConfigFileName)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	// fmt.Printf("%+v\n", config_data)
 
-	// Store the loaded configuration in the global variable
-	global.SystemConfig = config_data
-	return nil
+	return config_data, nil
 }

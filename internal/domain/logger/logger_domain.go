@@ -1,7 +1,5 @@
 package logger
 
-import "errors"
-
 /**
  * Interface logger service
  */
@@ -20,25 +18,3 @@ type ILogger interface {
 	Fatal(msg string, fields ...interface{})
 }
 
-/**
- * Manager instance logger
- */
-var _vILogger ILogger
-
-/**
- * Getter and setter instance logger
- */
-func GetLogger() ILogger {
-	return _vILogger
-}
-
-func SetLogger(logger ILogger) error {
-	if logger == nil {
-		return errors.New("instance set is nil")
-	}
-	if _vILogger != nil {
-		return errors.New("instance already exists")
-	}
-	_vILogger = logger
-	return nil
-}

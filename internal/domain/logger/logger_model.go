@@ -6,14 +6,12 @@ import (
 
 // Logger config pkg model input
 type LoggerConfigPkg struct {
-	ServerMode string
-	Setting    domain_config.LoggerSetting
+	Setting domain_config.TelemetryLoggerSetting
 }
 
 // Function newLoggerConfigPkg creates a new LoggerConfigPkg instance
-func NewLoggerConfigPkg(serverMode string, setting domain_config.LoggerSetting) *LoggerConfigPkg {
+func NewLoggerConfigPkg(setting domain_config.TelemetryLoggerSetting) *LoggerConfigPkg {
 	return &LoggerConfigPkg{
-		ServerMode: serverMode,
-		Setting:    setting,
+		Setting: setting,
 	}
 }

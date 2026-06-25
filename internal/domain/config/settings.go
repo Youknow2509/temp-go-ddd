@@ -4,38 +4,72 @@ package config
 // Configuration file structure for system
 // ===
 type SystemConfig struct {
-	System        SystemSetting                 `mapstructure:"system"`
-	HttpServer    HttpServerSetting             `mapstructure:"http_server"`
-	GrpcServer    GrpcServerSetting             `mapstructure:"grpc"`
-	GrpcClient    map[string]GrpcClientSetting  `mapstructure:"grpc_client"`
-	Redis         RedisSetting                  `mapstructure:"redis"`
-	ScyllaDb      ScyllaDbSetting               `mapstructure:"scylladb"`
-	Postgres      PostgresSetting               `mapstructure:"postgres"`
-	Kafka         KafkaSetting                  `mapstructure:"kafka"`
-	Logger        LoggerSetting                 `mapstructure:"logger"`
-	Observability ObservabilitySetting          `mapstructure:"observability"`
+	System     SystemSetting                `mapstructure:"system"`
+	HttpServer HttpServerSetting            `mapstructure:"http_server"`
+	GrpcServer GrpcServerSetting            `mapstructure:"grpc"`
+	GrpcClient map[string]GrpcClientSetting `mapstructure:"grpc_client"`
+	Redis      RedisSetting                 `mapstructure:"redis"`
+	ScyllaDb   ScyllaDbSetting              `mapstructure:"scylladb"`
+	Postgres   PostgresSetting              `mapstructure:"postgres"`
+	Kafka      KafkaSetting                 `mapstructure:"kafka"`
+	Telemetry  TelemetrySetting             `mapstructure:"telemetry"`
 }
 
 // ===
 // Setting configuration structure used in the configuration file
 // ===
 
-// Observability structure setting
-type ObservabilitySetting struct {
-	Enabled        bool   `mapstructure:"enabled"`
-	MetricsPath    string `mapstructure:"metrics_path"`
-	MetricsPort    int    `mapstructure:"metrics_port"`
-	TracingEnabled bool   `mapstructure:"tracing_enabled"`
-	OtlpEndpoint   string `mapstructure:"otlp_endpoint"`
+// Telemetry structure setting
+type TelemetrySetting struct {
+	Logger  TelemetryLoggerSetting  `mapstructure:"logger"`
+	Metrics TelemetryMetricsSetting `mapstructure:"metrics"`
+	Tracing TelemetryTracingSetting `mapstructure:"tracing"`
 }
 
-// Logger structure setting
-type LoggerSetting struct {
-	FolderStore    string `mapstructure:"folder_store"`
-	FileMaxSize    int    `mapstructure:"file_max_size"`
-	FileMaxBackups int    `mapstructure:"file_max_backups"`
-	FileMaxAge     int    `mapstructure:"file_max_age"`
-	Compress       bool   `mapstructure:"compress"`
+type TelemetryLoggerSetting struct {
+	Level           string                     `mapstructure:"level"`
+	Output          []string                   `mapstructure:"output"`
+	Caller          bool                       `mapstructure:"caller"`
+	StacktraceLevel string                     `mapstructure:"stacktrace_level"`
+	File            TelemetryLoggerFileSetting `mapstructure:"file"`
+}
+
+type TelemetryLoggerFileSetting struct {
+	Enabled    bool   `mapstructure:"enabled"`
+	Folder     string `mapstructure:"folder"`
+	Filename   string `mapstructure:"filename"`
+	MaxSizeMb  int    `mapstructure:"max_size_mb"`
+	MaxBackups int    `mapstructure:"max_backups"`
+	MaxAgeDays int    `mapstructure:"max_age_days"`
+	Compress   bool   `mapstructure:"compress"`
+}
+
+type TelemetryMetricsSetting struct {
+	Enabled             bool   `mapstructure:"enabled"`
+	Path                string `mapstructure:"path"`
+	Port                int    `mapstructure:"port"`
+	Host                string `mapstructure:"host"`
+	Namespace           string `mapstructure:"namespace"`
+	CollectIntervalSecs int    `mapstructure:"collect_interval_secs"`
+}
+
+type TelemetryTracingSetting struct {
+	Enabled        bool                         `mapstructure:"enabled"`
+	ServiceName    string                       `mapstructure:"service_name"`
+	ServiceVersion string                       `mapstructure:"service_version"`
+	OtlpEndpoint   string                       `mapstructure:"otlp_endpoint"`
+	Protocol       string                       `mapstructure:"protocol"`
+	SamplingRatio  float64                      `mapstructure:"sampling_ratio"`
+	Propagation    []string                     `mapstructure:"propagation"`
+	Batch          TelemetryTracingBatchSetting `mapstructure:"batch"`
+	Headers        map[string]string            `mapstructure:"headers"`
+}
+
+type TelemetryTracingBatchSetting struct {
+	MaxQueueSize       int `mapstructure:"max_queue_size"`
+	MaxExportBatchSize int `mapstructure:"max_export_batch_size"`
+	ScheduleDelayMs    int `mapstructure:"schedule_delay_ms"`
+	ExportTimeoutMs    int `mapstructure:"export_timeout_ms"`
 }
 
 // Grpc server structure setting
