@@ -72,28 +72,6 @@ type TelemetryTracingBatchSetting struct {
 	ExportTimeoutMs    int `mapstructure:"export_timeout_ms"`
 }
 
-// Grpc server structure setting
-type GrpcServerSetting struct {
-	Network                     string               `mapstructure:"network"`
-	Port                        int                  `mapstructure:"port"`
-	KeepaliveTimeMs             int                  `mapstructure:"keepalive_time_ms"`
-	KeepaliveTimeoutMs          int                  `mapstructure:"keepalive_timeout_ms"`
-	Http2MinTimeBetweenPingsMs  int                  `mapstructure:"http2_min_time_between_pings_ms"`
-	KeepalivePermitWithoutCalls bool                 `mapstructure:"keepalive_permit_without_calls"`
-	Tls                         GrpcServerTlsSetting `mapstructure:"tls"`
-}
-
-// Grpc server tsl sub structure setting
-type GrpcServerTlsSetting struct {
-	Enabled  bool   `mapstructure:"enabled"`
-	CertFile string `mapstructure:"cert_file"`
-	KeyFile  string `mapstructure:"key_file"`
-}
-
-// Http server structure setting
-type HttpServerSetting struct {
-	Port int `mapstructure:"port"`
-}
 
 // System setting structure setting
 type SystemSetting struct {

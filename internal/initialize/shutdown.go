@@ -86,7 +86,7 @@ func WaitForShutdown(cancel context.CancelFunc, wg *sync.WaitGroup, res *AppReso
 		}
 
 		// Stop all interfaces http, grpc, ws, kafka, ...
-		// TODO: Implement graceful shutdown for other interfaces (e.g., gRPC, WebSocket, Kafka, etc.) if applicable
+		shutdownInterfaces(res, logMsg)
 
 		// Stop all connections to external services (e.g., databases, message brokers, etc.)
 		// TODO: Implement graceful shutdown for external service connections if applicable
@@ -101,3 +101,29 @@ func WaitForShutdown(cancel context.CancelFunc, wg *sync.WaitGroup, res *AppReso
 
 	logMsg("Graceful shutdown completed. Exiting system.", nil)
 }
+
+// shutdownInterfaces gracefully shuts down all interfaces (e.g., HTTP, gRPC, WebSocket, Kafka, etc.)
+func shutdownInterfaces(res *AppResources, logMsg func(string, error)) {
+	if res.Interfaces == nil {
+		return
+	}
+	logMsg("Shutting down all interfaces", nil)
+
+	// Shutdown HTTP server
+	if res.Interfaces.HttpServer != nil {
+		logMsg("Shutting down HTTP server", nil)
+		if err := res.Interfaces.HttpServer.Shutdown(); err != nil {
+			logMsg("HTTP server shutdown error", err)
+		} else {
+			logMsg("HTTP server shut down successfully", nil)
+		}
+	}
+
+	// Shutdown gRPC server
+	if res.Interfaces.GrpcServer != nil {
+		logMsg("Shutting down gRPC server", nil)
+		res.Interfaces.GrpcServer.GracefulStop()
+		logMsg("gRPC server shut down successfully", nil)
+	}
+}
+

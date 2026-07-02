@@ -18,6 +18,7 @@ type AppResources struct {
 	TracerProvider *sdktrace.TracerProvider
 	MeterProvider  *sdkmetric.MeterProvider
 	MetricServer   *http.Server
+	Interfaces     *AppInterface
 }
 
 // ===
@@ -35,13 +36,21 @@ func Initialize(ctx context.Context, wg *sync.WaitGroup) (*AppResources, error) 
 		return nil, err
 	}
 
+	// Initialize interfaces
+	interfaces, err := initializeInterfaces(config, logger, wg)
+	if err != nil {
+		return nil, err
+	}
+
 	resources := &AppResources{
 		Config:         config,
 		Logger:         logger,
 		TracerProvider: tp,
 		MeterProvider:  mp,
 		MetricServer:   server,
+		Interfaces:     interfaces,
 	}
 
 	return resources, nil
 }
+
