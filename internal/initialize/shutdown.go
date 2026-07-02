@@ -89,7 +89,7 @@ func WaitForShutdown(cancel context.CancelFunc, wg *sync.WaitGroup, res *AppReso
 		shutdownInterfaces(res, logMsg)
 
 		// Stop all connections to external services (e.g., databases, message brokers, etc.)
-		// TODO: Implement graceful shutdown for external service connections if applicable
+		shutdownConnections(res, logMsg)
 
 	}
 
@@ -126,4 +126,52 @@ func shutdownInterfaces(res *AppResources, logMsg func(string, error)) {
 		logMsg("gRPC server shut down successfully", nil)
 	}
 }
+
+// shutdownConnections gracefully closes all external connection pools/clients
+func shutdownConnections(res *AppResources, logMsg func(string, error)) {
+	if res.Connections == nil {
+		return
+	}
+	logMsg("Shutting down connections to external services", nil)
+
+	if res.Connections.Postgres != nil {
+		logMsg("Closing Postgres connection pool", nil)
+		res.Connections.Postgres.Close()
+	}
+
+	if res.Connections.Redis != nil {
+		logMsg("Closing Redis client", nil)
+		if err := res.Connections.Redis.Close(); err != nil {
+			logMsg("Redis client close error", err)
+		} else {
+			logMsg("Redis client closed successfully", nil)
+		}
+	}
+
+	if res.Connections.ScyllaDb != nil {
+		logMsg("Closing ScyllaDB session", nil)
+		res.Connections.ScyllaDb.Close()
+	}
+
+	if res.Connections.Kafka != nil {
+		logMsg("Closing Kafka producers", nil)
+		if err := res.Connections.Kafka.Close(); err != nil {
+			logMsg("Kafka producers close error", err)
+		} else {
+			logMsg("Kafka producers closed successfully", nil)
+		}
+	}
+
+	for name, client := range res.Connections.GrpcClients {
+		if client != nil {
+			logMsg(fmt.Sprintf("Closing gRPC client connection for '%s'", name), nil)
+			if err := client.Close(); err != nil {
+				logMsg(fmt.Sprintf("gRPC client connection for '%s' close error", name), err)
+			} else {
+				logMsg(fmt.Sprintf("gRPC client connection for '%s' closed successfully", name), nil)
+			}
+		}
+	}
+}
+
 

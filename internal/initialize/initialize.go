@@ -18,6 +18,7 @@ type AppResources struct {
 	TracerProvider *sdktrace.TracerProvider
 	MeterProvider  *sdkmetric.MeterProvider
 	MetricServer   *http.Server
+	Connections    *Connection
 	Interfaces     *AppInterface
 }
 
@@ -36,6 +37,28 @@ func Initialize(ctx context.Context, wg *sync.WaitGroup) (*AppResources, error) 
 		return nil, err
 	}
 
+	// Initialize connection
+	connections, err := initializeConnection(ctx, config, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize services
+	services, err := initializeAppService(config, logger, connections)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize use cases
+	if err := initializeUseCase(config, logger, services); err != nil {
+		return nil, err
+	}
+
+	// Initialize pool
+	if err := initializeAppPool(config, logger); err != nil {
+		return nil, err
+	}
+
 	// Initialize interfaces
 	interfaces, err := initializeInterfaces(config, logger, wg)
 	if err != nil {
@@ -48,9 +71,11 @@ func Initialize(ctx context.Context, wg *sync.WaitGroup) (*AppResources, error) 
 		TracerProvider: tp,
 		MeterProvider:  mp,
 		MetricServer:   server,
+		Connections:    connections,
 		Interfaces:     interfaces,
 	}
 
 	return resources, nil
 }
+
 
